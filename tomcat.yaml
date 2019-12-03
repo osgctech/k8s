@@ -1,0 +1,28 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: tomcat9
+spec:
+  replicas: 2
+  selector: 
+    matchLabels:
+      app: tomcat9 
+  template:
+    metadata:
+     labels:
+      app: tomcat9
+    spec:
+      containers:
+      - name: tomcat9
+        image: osgctech/tomcat:centos7
+        imagePullPolicy: Always
+        ports:
+          - containerPort: 8080
+        volumeMounts:
+        - name: appdir
+          mountPath: /osgc/app
+      volumes: 
+      - name: appdir
+        nfs: 
+         path: /osgc/app
+         server: 192.168.1.222

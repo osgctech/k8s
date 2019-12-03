@@ -1,0 +1,73 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: rocketmq-ns-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mq
+  template:
+    metadata:
+     labels:
+      app: mq
+    spec:
+      nodeSelector: 
+        app: mq
+      containers:
+      - name: rocketmq-nameserver
+        image: osgctech/rocketmq:4.6.0
+        command: ["sh","mqnamesrv"]
+        imagePullPolicy: Always
+        ports:
+          - containerPort: 9876
+        volumeMounts:
+          - mountPath: /home/rocketmq/logs
+            name: namesrvlogs
+      hostNetwork: true
+      volumes:
+      - name: namesrvlogs
+        emptyDir: {}
+      - name: namesrvstore 
+        emptyDir: {}
+---          
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: rocketmq-broker-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rocketmq-broker
+      name: rocketmq-broker
+  template:
+    metadata:
+     labels:
+      app: rocketmq-broker
+      name: rocketmq-broker
+    spec:
+      nodeSelector:
+        app: mq
+      containers:
+      - name: rocketmq-broker
+        image: osgctech/rocketmq:4.6.0
+        command: ["sh"]
+        args: ["-c", "echo \"brokerIP1=192.168.1.203\" >> app.conf; ./mqbroker -n 192.168.1.203:9876 -c app.conf"]
+        imagePullPolicy: Always
+        ports:
+          - containerPort: 10909
+          - containerPort: 10911
+        volumeMounts:
+          - mountPath: /home/rocketmq/logs
+            name: brokerlogs
+          - mountPath: /home/rocketmq/store
+            name: brokerstore
+      hostNetwork: true
+      volumes:
+      - name: brokerlogs
+        emptyDir: {}
+      - name: brokerstore
+        emptyDir: {}
+
+
